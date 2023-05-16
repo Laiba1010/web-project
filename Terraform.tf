@@ -3,7 +3,7 @@ provider "aws" {
 }
 
 resource "aws_s3_bucket" "my_bucket" {
-  bucket = "web-project"
+  bucket = "bucket-web-project-1"
   acl    = "private"
 
   versioning {
