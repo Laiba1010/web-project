@@ -3,9 +3,14 @@ provider "aws" {
 }
 
 resource "aws_s3_bucket" "my_bucket" {
-  bucket = "dev-laiba-wania-bucket-1"
+  bucket = "dev-laiba-wania-bucket-2"
+}
+
+resource "aws_s3_bucket_acl" "bucket_acl" {
+  bucket = aws_s3_bucket.my_bucket.id
   acl    = "private"
 }
+
 
 resource "aws_s3_bucket_object" "cache_control" {
   bucket = aws_s3_bucket.my_bucket.id
