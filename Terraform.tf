@@ -3,7 +3,7 @@ provider "aws" {
 }
 
 resource "aws_s3_bucket" "my_bucket" {
-  bucket = "dev-laiba-wania-bucket"
+  bucket = "dev-laiba-wania-bucket-1"
   acl    = "private"
 }
 
@@ -19,7 +19,7 @@ resource "aws_s3_bucket_policy" "bucket_policy" {
       "Effect": "Deny",
       "Principal": "*",
       "Action": "s3:GetObject",
-      "Resource": "arn:aws:s3:::dev-laiba-wania-bucket/*",
+      "Resource": "arn:aws:s3:::dev-laiba-wania-bucket-1/*",
       "Condition": {
         "StringNotEquals": {
           "aws:Referer": "https://d3jkrtf8itur24.cloudfront.net/*"
