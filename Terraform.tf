@@ -7,30 +7,6 @@ resource "aws_s3_bucket" "my_bucket" {
   acl    = "private"
 }
 
-resource "aws_s3_bucket_policy" "bucket_policy" {
-  bucket = aws_s3_bucket.my_bucket.id
-
-  policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Sid": "AllowCloudFrontAccess",
-      "Effect": "Deny",
-      "Principal": "*",
-      "Action": "s3:GetObject",
-      "Resource": "arn:aws:s3:::dev-laiba-wania-bucket-1/*",
-      "Condition": {
-        "StringNotEquals": {
-          "aws:Referer": "https://d3jkrtf8itur24.cloudfront.net/*"
-        }
-      }
-    }
-  ]
-}
-EOF
-}
-
 resource "aws_s3_bucket_object" "cache_control" {
   bucket = aws_s3_bucket.my_bucket.id
   key    = "index.html"
@@ -46,7 +22,7 @@ resource "aws_cloudfront_distribution" "my_distribution" {
   default_root_object = "index.html"
 
   origin {
-    domain_name = "https://d3jkrtf8itur24.cloudfront.net"
+    domain_name = aws_s3_bucket.my_bucket.website_endpoint
     origin_id   = aws_s3_bucket.my_bucket.id
   }
 
