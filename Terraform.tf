@@ -3,7 +3,7 @@ provider "aws" {
 }
 
 resource "aws_s3_bucket" "my_bucket" {
-  bucket = "my-bucket-web"
+  bucket = "dev-laiba-wania-bucket"
   acl    = "private"
 
   versioning {
@@ -19,7 +19,7 @@ resource "aws_s3_bucket" "my_bucket" {
       "Effect": "Deny",
       "Principal": "*",
       "Action": "s3:GetObject",
-      "Resource": "arn:aws:s3:::my-bucket-web/*"
+      "Resource": "arn:aws:s3:::dev-laiba-wania-bucket/*"
     }
   ]
 }
