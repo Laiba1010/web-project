@@ -5,21 +5,26 @@ provider "aws" {
 resource "aws_s3_bucket" "my_bucket" {
   bucket = "dev-laiba-wania-bucket"
   acl    = "private"
+}
 
-  versioning {
-    enabled = true
-  }
+resource "aws_s3_bucket_policy" "bucket_policy" {
+  bucket = aws_s3_bucket.my_bucket.id
 
   policy = <<EOF
 {
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Sid": "RestrictAccess",
+      "Sid": "AllowCloudFrontAccess",
       "Effect": "Deny",
       "Principal": "*",
       "Action": "s3:GetObject",
-      "Resource": "arn:aws:s3:::dev-laiba-wania-bucket/*"
+      "Resource": "arn:aws:s3:::dev-laiba-wania-bucket/*",
+      "Condition": {
+        "StringNotEquals": {
+          "aws:Referer": "https://d3jkrtf8itur24.cloudfront.net/*"
+        }
+      }
     }
   ]
 }
@@ -41,7 +46,7 @@ resource "aws_cloudfront_distribution" "my_distribution" {
   default_root_object = "index.html"
 
   origin {
-    domain_name = aws_s3_bucket.my_bucket.website_endpoint
+    domain_name = "https://d3jkrtf8itur24.cloudfront.net"
     origin_id   = aws_s3_bucket.my_bucket.id
   }
 
@@ -72,3 +77,4 @@ resource "aws_cloudfront_distribution" "my_distribution" {
     cloudfront_default_certificate = true
   }
 }
+
