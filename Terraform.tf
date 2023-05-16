@@ -9,24 +9,17 @@ resource "aws_s3_bucket" "my_bucket" {
   versioning {
     enabled = true
   }
-}
-
-resource "aws_s3_bucket_policy" "bucket_policy" {
-  bucket = aws_s3_bucket.my_bucket.id
 
   policy = <<EOF
 {
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Sid": "AllowCloudFrontAccess",
+      "Sid": "RestrictAccess",
       "Effect": "Deny",
       "Principal": "*",
       "Action": "s3:GetObject",
-      "Resource": "arn:aws:s3:::my-bucket-web/*",
-     
-        
-      
+      "Resource": "arn:aws:s3:::my-bucket-web/*"
     }
   ]
 }
