@@ -3,13 +3,35 @@ provider "aws" {
 }
 
 resource "aws_s3_bucket" "my_bucket" {
-  bucket = "dev-laiba-wania-bucket-2"
-}
-
-resource "aws_s3_bucket_acl" "bucket_acl" {
-  bucket = aws_s3_bucket.my_bucket.id
+  bucket = "dev-laiba-wania-bucket-3"
   acl    = "private"
 }
+  resource "aws_s3_bucket_policy" "bucket_policy" {
+  bucket = aws_s3_bucket.my_bucket.id
+
+  policy = <<POLICY
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowCloudFrontAccess",
+      "Effect": "Deny",
+      "Principal": "*",
+      "Action": "s3:GetObject",
+      "Resource": "arn:aws:s3:::dev-laiba-wania-bucket-3/*",
+      "Condition": {
+        "StringNotEquals": {
+          "aws:Referer": "https://*.cloudfront.net/*"
+        }
+      }
+    }
+  ]
+}
+POLICY
+}
+
+}
+
 
 
 resource "aws_s3_bucket_object" "cache_control" {
