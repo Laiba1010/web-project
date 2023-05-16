@@ -2,9 +2,9 @@ provider "aws" {
   region = "eu-west-1"
 }
 
-resource "aws_s3_bucket" "my_bucket" {
-  bucket = "bucket-web-project-1"
-  acl    = "private"
+#resource "aws_s3_bucket" "my_bucket" {
+ # bucket = "bucket-web-project-1"
+  #acl    = "private"
 
   versioning {
     enabled = true
