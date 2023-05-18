@@ -5,11 +5,12 @@ provider "aws" {
 resource "aws_s3_bucket" "my_bucket" {
   bucket = "dev-laiba-wania-bucket-5"
   acl    = "private"
+}
 
-  website {
-    index_document = "index.html"
-    error_document = "404.html"
-  }
+resource "aws_s3_bucket_website_configuration" "my_bucket_website" {
+  bucket = aws_s3_bucket.my_bucket.id
+  index_document = "index.html"
+  error_document = "error.html"
 }
 
 resource "aws_s3_bucket_policy" "bucket_policy" {
@@ -24,7 +25,7 @@ resource "aws_s3_bucket_policy" "bucket_policy" {
       "Effect": "Deny",
       "Principal": "*",
       "Action": "s3:GetObject",
-      "Resource": "arn:aws:s3:::dev-laiba-wania-bucket-5/*",
+      "Resource": "arn:aws:s3:::dev-laiba-wania-bucket-4/*",
       "Condition": {
         "StringNotEquals": {
           "aws:Referer": "https://${aws_cloudfront_distribution.my_distribution.domain_name}/*"
@@ -74,15 +75,15 @@ resource "aws_cloudfront_distribution" "my_distribution" {
   viewer_certificate {
     cloudfront_default_certificate = true
   }
-origin {
+
+  origin {
     domain_name = aws_s3_bucket.my_bucket.bucket_regional_domain_name
     origin_id   = aws_s3_bucket.my_bucket.id
-}
     s3_origin_config {
       origin_access_identity = aws_cloudfront_origin_access_identity.my_oai.cloudfront_access_identity_path
     }
   }
-
+}
 
 resource "aws_cloudfront_origin_access_identity" "my_oai" {
   comment = "My CloudFront OAI"
