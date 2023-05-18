@@ -82,7 +82,7 @@ origin {
       origin_access_identity = aws_cloudfront_origin_access_identity.my_oai.cloudfront_access_identity_path
     }
   }
-}
+
 
 resource "aws_cloudfront_origin_access_identity" "my_oai" {
   comment = "My CloudFront OAI"
