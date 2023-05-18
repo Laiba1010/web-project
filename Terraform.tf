@@ -5,8 +5,14 @@ provider "aws" {
 resource "aws_s3_bucket" "my_bucket" {
   bucket = "dev-laiba-wania-bucket-5"
   acl    = "private"
+
+  website {
+    index_document = "index.html"
+    error_document = "error.html"
+  }
 }
-  resource "aws_s3_bucket_policy" "bucket_policy" {
+
+resource "aws_s3_bucket_policy" "bucket_policy" {
   bucket = aws_s3_bucket.my_bucket.id
 
   policy = <<POLICY
@@ -30,25 +36,17 @@ resource "aws_s3_bucket" "my_bucket" {
 POLICY
 }
 
-
-resource "aws_s3_bucket_object" "cache_control" {
+resource "aws_s3_bucket_object" "index" {
   bucket = aws_s3_bucket.my_bucket.id
   key    = "index.html"
   source = "index.html"
-
-  cache_control = "max-age=3600"
+  content_type = "text/html"
 }
 
 resource "aws_cloudfront_distribution" "my_distribution" {
   enabled             = true
   is_ipv6_enabled     = true
   comment             = "My CloudFront Distribution"
-  default_root_object = "index.html"
-
-  origin {
-    domain_name = aws_s3_bucket.my_bucket.bucket_regional_domain_name
-    origin_id   = aws_s3_bucket.my_bucket.id
-  }
 
   default_cache_behavior {
     allowed_methods  = ["GET", "HEAD"]
@@ -76,6 +74,35 @@ resource "aws_cloudfront_distribution" "my_distribution" {
   viewer_certificate {
     cloudfront_default_certificate = true
   }
+origin {
+    domain_name = aws_s3_bucket.my_bucket.bucket_regional_domain_name
+    origin_id   = aws_s3_bucket.my_bucket.id
+}
+    s3_origin_config {
+      origin_access_identity = aws_cloudfront_origin_access_identity.my_oai.cloudfront_access_identity_path
+    }
+  }
 }
 
+resource "aws_cloudfront_origin_access_identity" "my_oai" {
+  comment = "My CloudFront OAI"
+}
 
+resource "aws_s3_bucket_policy" "bucket_policy_oai" {
+  bucket = aws_s3_bucket.my_bucket.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid = "AllowCloudFrontAccess"
+        Effect = "Allow"
+        Principal = {
+          AWS = aws_cloudfront_origin_access_identity.my_oai.iam_arn
+        }
+        Action = "s3:GetObject"
+        Resource = join("", [aws_s3_bucket.my_bucket.arn, "/*"])
+      }
+    ]
+  })
+}
