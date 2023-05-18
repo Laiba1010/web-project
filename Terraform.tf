@@ -8,7 +8,7 @@ resource "aws_s3_bucket" "my_bucket" {
 
   website {
     index_document = "index.html"
-    error_document = "error.html"
+    error_document = "404.html"
   }
 }
 
