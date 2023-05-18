@@ -3,7 +3,7 @@ provider "aws" {
 }
 
 resource "aws_s3_bucket" "my_bucket" {
-  bucket = "dev-laiba-wania-bucket-3"
+  bucket = "dev-laiba-wania-bucket-4"
   acl    = "private"
 }
   resource "aws_s3_bucket_policy" "bucket_policy" {
@@ -18,7 +18,7 @@ resource "aws_s3_bucket" "my_bucket" {
       "Effect": "Deny",
       "Principal": "*",
       "Action": "s3:GetObject",
-      "Resource": "arn:aws:s3:::dev-laiba-wania-bucket-3/*",
+      "Resource": "arn:aws:s3:::dev-laiba-wania-bucket-4/*",
       "Condition": {
         "StringNotEquals": {
           "aws:Referer": "https://*.cloudfront.net/*"
@@ -29,9 +29,6 @@ resource "aws_s3_bucket" "my_bucket" {
 }
 POLICY
 }
-
-
-
 
 resource "aws_s3_bucket_object" "cache_control" {
   bucket = aws_s3_bucket.my_bucket.id
@@ -48,7 +45,7 @@ resource "aws_cloudfront_distribution" "my_distribution" {
   default_root_object = "index.html"
 
   origin {
-    domain_name = aws_s3_bucket.my_bucket.website_endpoint
+    domain_name = aws_s3_bucket.my_bucket.bucket_regional_domain_name
     origin_id   = aws_s3_bucket.my_bucket.id
   }
 
@@ -79,4 +76,5 @@ resource "aws_cloudfront_distribution" "my_distribution" {
     cloudfront_default_certificate = true
   }
 }
+
 
