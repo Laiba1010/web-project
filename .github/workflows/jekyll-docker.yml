@@ -36,3 +36,7 @@ jobs:
 
     - name: Deploy to S3 using Terraform
       run: terraform apply -auto-approve
+      
+      
+      
+      
