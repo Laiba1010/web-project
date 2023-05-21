@@ -24,20 +24,56 @@ resource "aws_s3_bucket_policy" "bucket_policy" {
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Sid": "AllowCloudFrontAccess",
-      "Effect": "Deny",
-      "Principal": "*",
-      "Action": "s3:GetObject",
-      "Resource": "arn:aws:s3:::dev-laiba-wania-bucket-1/*",
-      "Condition": {
-        "StringNotEquals": {
-          "aws:Referer": "https://${aws_cloudfront_distribution.my_distribution.domain_name}/*"
-        }
-      }
+      "Sid": "AllowS3Access",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "*"
+      },
+   
     }
   ]
 }
 POLICY
+}
+
+resource "aws_lambda_function" "edge_function" {
+  filename      = "lambda_function.zip"
+  function_name = "my-edge-function"
+  role          = aws_iam_role.lambda_role.arn
+  handler       = "index.handler"
+  runtime       = "nodejs14.x"
+}
+
+resource "aws_iam_role" "lambda_role" {
+  name = "lambda-edge-role"
+
+  assume_role_policy = <<POLICY
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "lambda.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+POLICY
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_policy_attachment" {
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+  role       = aws_iam_role.lambda_role.name
+}
+
+resource "aws_lambda_permission" "edge_permission" {
+  statement_id  = "AllowExecutionFromCloudFront"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.edge_function.function_name
+  principal     = "edgelambda.amazonaws.com"
+  source_arn    = aws_cloudfront_distribution.my_distribution.arn
 }
 
 resource "aws_cloudfront_distribution" "my_distribution" {
@@ -60,6 +96,12 @@ resource "aws_cloudfront_distribution" "my_distribution" {
     min_ttl                = 0
     default_ttl            = 3600
     max_ttl                = 86400
+
+    lambda_function_association {
+      event_type   = "viewer-request"
+      lambda_arn   = aws_lambda_function.edge_function.qualified_arn
+      include_body = false
+    }
   }
 
   restrictions {
