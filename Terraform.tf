@@ -102,11 +102,12 @@ resource "aws_cloudfront_distribution" "my_distribution" {
     default_ttl            = 3600
     max_ttl                = 86400
 
-   lambda_function_association {
+ lambda_function_association {
   event_type   = "viewer-request"
-  lambda_arn   = "arn:aws:lambda:eu-west-1:***:function:my-edge-function:1"  # Replace with the specific version number
+  lambda_arn   = aws_lambda_function.edge_function.qualified_arn
   include_body = false
 }
+
 
   }
 
