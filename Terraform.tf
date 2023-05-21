@@ -45,7 +45,7 @@ resource "aws_lambda_function" "edge_function" {
   role          = aws_iam_role.lambda_role.arn
   handler       = "myLambdaFunction.handler"
   runtime       = "nodejs14.x"
-  filename      = "./myLambdaFunction.js"
+  filename      = "./myLambdaFunction.zip"
 }
 
 
