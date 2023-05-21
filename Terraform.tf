@@ -3,7 +3,7 @@ provider "aws" {
 }
 
 resource "aws_s3_bucket" "my_bucket" {
-  bucket = "dev-laiba-wania-bucket-9"
+  bucket = "dev-laiba-wania-bucket-1"
   acl    = "private"
 
   website {
@@ -24,7 +24,7 @@ resource "aws_s3_bucket_policy" "bucket_policy" {
       "Effect": "Deny",
       "Principal": "*",
       "Action": "s3:GetObject",
-      "Resource": "arn:aws:s3:::dev-laiba-wania-bucket-9/*",
+      "Resource": "arn:aws:s3:::dev-laiba-wania-bucket-1/*",
       "Condition": {
         "StringNotEquals": {
           "aws:Referer": "https://${aws_cloudfront_distribution.my_distribution.domain_name}/*"
@@ -103,47 +103,47 @@ resource "aws_s3_bucket_policy" "bucket_policy_oai" {
 
 data "github_repository_file" "files" {
   repository = "Laiba1010/web-project"
-  file_path  = "css/*"
+  file       = "css/*"
 }
 
 data "github_repository_file" "fonts" {
   repository = "Laiba1010/web-project"
-  file_path  = "fonts/*"
+  file       = "fonts/*"
 }
 
 data "github_repository_file" "images" {
   repository = "Laiba1010/web-project"
-  file_path  = "images/*"
+  file       = "images/*"
 }
 
 data "github_repository_file" "js" {
   repository = "Laiba1010/web-project"
-  file_path  = "js/*"
+  file       = "js/*"
 }
 
 data "github_repository_file" "error" {
   repository = "Laiba1010/web-project"
-  file_path  = "404.html"
+  file       = "404.html"
 }
 
 data "github_repository_file" "about" {
   repository = "Laiba1010/web-project"
-  file_path  = "about.html"
+  file       = "about.html"
 }
 
 data "github_repository_file" "contact" {
   repository = "Laiba1010/web-project"
-  file_path  = "contact.html"
+  file       = "contact.html"
 }
 
 data "github_repository_file" "food" {
   repository = "Laiba1010/web-project"
-  file_path  = "food.html"
+  file       = "food.html"
 }
 
 data "github_repository_file" "index" {
   repository = "Laiba1010/web-project"
-  file_path  = "index.html"
+  file       = "index.html"
 }
 
 
