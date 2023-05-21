@@ -29,7 +29,8 @@ resource "aws_s3_bucket_policy" "bucket_policy" {
       "Principal": {
         "AWS": "*"
       },
-   
+      "Action": "s3:GetObject",
+      "Resource": "arn:aws:s3:::dev-laiba-wania-bucket-1/*"
     }
   ]
 }
