@@ -24,17 +24,16 @@ resource "aws_s3_bucket_policy" "bucket_policy" {
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Sid": "AllowS3Access",
-      "Effect": "Allow",
-      "Principal": {
-        "AWS": "*"
-      },
-      "Action": [
-        "s3:GetObject"
-      ],
-      "Resource": [
-        "arn:aws:s3:::dev-laiba-wania-bucket-1/*"
-      ]
+      "Sid": "AllowCloudFrontAccess",
+      "Effect": "Deny",
+      "Principal": "*",
+      "Action": "s3:GetObject",
+      "Resource": "arn:aws:s3:::dev-laiba-wania-bucket-1/*",
+      "Condition": {
+        "StringNotEquals": {
+          "aws:Referer": "https://${aws_cloudfront_distribution.my_distribution.domain_name}/*"
+        }
+      }
     }
   ]
 }
@@ -42,7 +41,7 @@ POLICY
 }
 
 resource "aws_lambda_function" "edge_function" {
-  filename      = "myLambdaFunction.js"
+  filename      = "myLambdaFunction.zip"
   function_name = "my-edge-function"
   role          = aws_iam_role.lambda_role.arn
   handler       = "index.handler"
