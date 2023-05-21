@@ -28,9 +28,7 @@ resource "aws_s3_bucket_policy" "bucket_policy" {
       "Effect": "Allow",
       "Principal": {
         "AWS": "*"
-      },
-      "Action": "s3:GetObject",
-      "Resource": "arn:aws:s3:::dev-laiba-wania-bucket-1/*"
+      }
     }
   ]
 }
@@ -38,7 +36,7 @@ POLICY
 }
 
 resource "aws_lambda_function" "edge_function" {
-  filename      = "lambda_function.zip"
+  filename      = "myLambdaFunction.js"
   function_name = "my-edge-function"
   role          = aws_iam_role.lambda_role.arn
   handler       = "index.handler"
