@@ -3,7 +3,7 @@ provider "aws" {
 }
 
 resource "aws_s3_bucket" "my_bucket" {
-  bucket = "dev-laiba-wania-bucket-7"
+  bucket = "dev-laiba-wania-bucket-8"
   acl    = "private"
 
   website {
@@ -24,7 +24,7 @@ resource "aws_s3_bucket_policy" "bucket_policy" {
       "Effect": "Deny",
       "Principal": "*",
       "Action": "s3:GetObject",
-      "Resource": "arn:aws:s3:::dev-laiba-wania-bucket-7/*",
+      "Resource": "arn:aws:s3:::dev-laiba-wania-bucket-8/*",
       "Condition": {
         "StringNotEquals": {
           "aws:Referer": "https://${aws_cloudfront_distribution.my_distribution.domain_name}/*"
@@ -39,10 +39,61 @@ POLICY
 resource "aws_s3_bucket_object" "index" {
   bucket = aws_s3_bucket.my_bucket.id
   key    = "index.html"
-  source = "index.html"
+  source = "https://github.com/Laiba1010/web-project.git/index.html"
   content_type = "text/html"
 }
 
+resource "aws_s3_bucket_object" "css" {
+  bucket = aws_s3_bucket.my_bucket.id
+  key    = "css/"
+  source = "https://github.com/Laiba1010/web-project.git/css/"
+}
+
+resource "aws_s3_bucket_object" "fonts" {
+  bucket = aws_s3_bucket.my_bucket.id
+  key    = "fonts/"
+  source = "https://github.com/Laiba1010/web-project.git/fonts/"
+}
+
+resource "aws_s3_bucket_object" "images" {
+  bucket = aws_s3_bucket.my_bucket.id
+  key    = "images/"
+  source = "https://github.com/Laiba1010/web-project.git/images/"
+}
+
+resource "aws_s3_bucket_object" "js" {
+  bucket = aws_s3_bucket.my_bucket.id
+  key    = "js/"
+  source = "https://github.com/Laiba1010/web-project.git/js/"
+}
+
+resource "aws_s3_bucket_object" "404" {
+  bucket = aws_s3_bucket.my_bucket.id
+  key    = "404.html"
+  source = "https://github.com/Laiba1010/web-project.git/404.html"
+  content_type = "text/html"
+}
+
+resource "aws_s3_bucket_object" "about" {
+  bucket = aws_s3_bucket.my_bucket.id
+  key    = "about.html"
+  source = "https://github.com/Laiba1010/web-project.git/about.html"
+  content_type = "text/html"
+}
+
+resource "aws_s3_bucket_object" "contact" {
+  bucket = aws_s3_bucket.my_bucket.id
+  key    = "contact.html"
+  source = "https://github.com/Laiba1010/web-project.git/contact.html"
+  content_type = "text/html"
+}
+
+resource "aws_s3_bucket_object" "food" {
+  bucket = aws_s3_bucket.my_bucket.id
+  key    = "food.html"
+  source = "https://github.com/Laiba1010/web-project.git/food.html"
+  content_type = "text/html"
+}
 resource "aws_cloudfront_distribution" "my_distribution" {
   enabled             = true
   is_ipv6_enabled     = true
