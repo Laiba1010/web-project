@@ -67,7 +67,7 @@ resource "aws_s3_bucket_object" "js" {
   source = "https://github.com/Laiba1010/web-project.git/js/"
 }
 
-resource "aws_s3_bucket_object" "404" {
+resource "aws_s3_bucket_object" "not_found" {
   bucket = aws_s3_bucket.my_bucket.id
   key    = "404.html"
   source = "https://github.com/Laiba1010/web-project.git/404.html"
