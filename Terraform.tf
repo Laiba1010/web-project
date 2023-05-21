@@ -129,6 +129,7 @@ resource "aws_cloudfront_distribution" "my_distribution" {
   }
 }
 
+
 resource "aws_cloudfront_origin_access_identity" "my_oai" {
   comment = "My CloudFront OAI"
 }
