@@ -12,6 +12,10 @@ resource "aws_s3_bucket" "my_bucket" {
   }
 }
 
+output "s3_bucket_name" {
+  value = aws_s3_bucket.my_bucket.id
+}
+
 resource "aws_s3_bucket_policy" "bucket_policy" {
   bucket = aws_s3_bucket.my_bucket.id
 
@@ -80,78 +84,4 @@ resource "aws_cloudfront_distribution" "my_distribution" {
 
 resource "aws_cloudfront_origin_access_identity" "my_oai" {
   comment = "My CloudFront OAI"
-}
-
-resource "aws_s3_bucket_policy" "bucket_policy_oai" {
-  bucket = aws_s3_bucket.my_bucket.id
-
-  policy = jsonencode({
-    Version   = "2012-10-17"
-    Statement = [
-      {
-        Sid       = "AllowCloudFrontAccess"
-        Effect    = "Allow"
-        Principal = {
-          AWS = aws_cloudfront_origin_access_identity.my_oai.iam_arn
-        }
-        Action    = "s3:GetObject"
-        Resource  = join("", [aws_s3_bucket.my_bucket.arn, "/*"])
-      }
-    ]
-  })
-}
-
-data "github_repository_file" "files" {
-  repository = "Laiba1010/web-project"
-  file       = "css/*"
-}
-
-data "github_repository_file" "fonts" {
-  repository = "Laiba1010/web-project"
-  file       = "fonts/*"
-}
-
-data "github_repository_file" "images" {
-  repository = "Laiba1010/web-project"
-  file       = "images/*"
-}
-
-data "github_repository_file" "js" {
-  repository = "Laiba1010/web-project"
-  file       = "js/*"
-}
-
-data "github_repository_file" "error" {
-  repository = "Laiba1010/web-project"
-  file       = "404.html"
-}
-
-data "github_repository_file" "about" {
-  repository = "Laiba1010/web-project"
-  file       = "about.html"
-}
-
-data "github_repository_file" "contact" {
-  repository = "Laiba1010/web-project"
-  file       = "contact.html"
-}
-
-data "github_repository_file" "food" {
-  repository = "Laiba1010/web-project"
-  file       = "food.html"
-}
-
-data "github_repository_file" "index" {
-  repository = "Laiba1010/web-project"
-  file       = "index.html"
-}
-
-
-resource "aws_s3_bucket_object" "deployed_files" {
-  for_each = data.github_repository_file.files
-
-  bucket = aws_s3_bucket.my_bucket.id
-  key    = each.value.path
-  source = each.value.download_url
-  etag   = each.value.sha
 }
