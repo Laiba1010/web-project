@@ -1,7 +1,3 @@
-provider "aws" {
-  region = "eu-west-1"
-}
-
 # Set up the S3 bucket for static website hosting
 resource "aws_s3_bucket" "static_website_bucket" {
   bucket = "dev-laiba-wania-bucket-1"
@@ -121,7 +117,6 @@ resource "aws_cloudfront_distribution" "static_website_distribution" {
 resource "aws_cloudfront_distribution" "static_website_distribution_invalidation" {
   depends_on = [aws_cloudfront_distribution.static_website_distribution]
 
-  count   = var.enable_cache_invalidation ? 1 : 0
   for_each = aws_s3_bucket_object.cache_control
 
   distribution_id = aws_cloudfront_distribution.static_website_distribution.id
@@ -131,6 +126,3 @@ resource "aws_cloudfront_distribution" "static_website_distribution_invalidation
     paths            = [each.key]
   }
 }
-
-
-
