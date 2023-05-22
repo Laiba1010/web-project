@@ -9,7 +9,7 @@ resource "aws_s3_bucket" "static_website_bucket" {
 
   website {
     index_document = "index.html"
-    error_document = "error.html"
+    error_document = "404.html"
   }
 
   versioning {
@@ -117,11 +117,4 @@ resource "aws_cloudfront_distribution" "static_website_distribution" {
   tags = {
     Name = "StaticWebsiteDistribution"
   }
-}
-
-# Invalidate CloudFront cache after deployment
-resource "aws_cloudfront_distribution_invalidation" "static_website_distribution_invalidation" {
-  depends_on        = [aws_cloudfront_distribution.static_website_distribution]
-  distribution_id   = aws_cloudfront_distribution.static_website_distribution.id
-  path_pattern      = "/*"
 }
