@@ -40,7 +40,7 @@ resource "aws_s3_bucket_policy" "bucket_policy" {
       "Resource": "arn:aws:s3:::dev-laiba-wania-bucket-1/*",
       "Condition": {
         "StringNotEquals": {
-          "aws:Referer": "https://${aws_cloudfront_distribution.my_distribution.domain_name}/*"
+          "aws:Referer": "https://${aws_cloudfront_distribution.static_website_distribution.domain_name}/*"
         }
       }
     }
@@ -51,7 +51,7 @@ POLICY
 
 # Configure automated backups using S3 lifecycle policy
 resource "aws_s3_bucket_lifecycle_configuration" "lifecycle_configuration" {
-  bucket = aws_s3_bucket.static_website_bucket.bucket
+ bucket = aws_s3_bucket.my_bucket.bucket
 
   rule {
     id      = "BackupRule"
@@ -68,7 +68,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "lifecycle_configuration" {
 resource "aws_s3_bucket_object" "cache_control" {
   for_each = var.object_cache_control
 
-  bucket       = aws_s3_bucket.static_website_bucket.bucket
+  bucket = aws_s3_bucket.my_bucket.bucket
   key          = each.key
   content_type = each.value.content_type
 
@@ -112,8 +112,8 @@ resource "aws_cloudfront_distribution" "static_website_distribution" {
     cloudfront_default_certificate = true
   }
 
-  origin {
-    domain_name = aws_s3_bucket.static_website_bucket.website_endpoint
+   origin {
+    domain_name = aws_s3_bucket.my_bucket.website_domain
     origin_id   = "S3Origin"
 
     custom_origin_config {
