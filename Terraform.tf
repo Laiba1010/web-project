@@ -114,7 +114,7 @@ resource "aws_cloudfront_distribution" "static_website_distribution" {
 
    origin {
     domain_name = aws_s3_bucket.my_bucket.website_domain
-    origin_id   = "S3Origin"
+    origin_id   = "index.html"
 
     custom_origin_config {
       http_port             = 80
