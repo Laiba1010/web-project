@@ -2,99 +2,55 @@ provider "aws" {
   region = "eu-west-1"
 }
 
-resource "aws_s3_bucket" "my_bucket" {
+# Set up the S3 bucket for static website hosting
+resource "aws_s3_bucket" "static_website_bucket" {
   bucket = "dev-laiba-wania-bucket-1"
-  acl    = "private"
+  acl    = "public-read"  # Allow public read access
 
   website {
     index_document = "index.html"
-    error_document = "404.html"
+    error_document = "error.html"
+  }
+
+  versioning {
+    enabled = true
   }
 }
 
-output "s3_bucket_name" {
-  value = aws_s3_bucket.my_bucket.id
-}
-
+# Configure bucket policy to allow public access
 resource "aws_s3_bucket_policy" "bucket_policy" {
-  bucket = aws_s3_bucket.my_bucket.id
+  bucket = aws_s3_bucket.static_website_bucket.bucket
 
-  policy = <<POLICY
+  policy = <<EOF
 {
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Sid": "AllowCloudFrontAccess",
-      "Effect": "Deny",
-      "Principal": "*",
-      "Action": "s3:GetObject",
-      "Resource": "arn:aws:s3:::dev-laiba-wania-bucket-1/*",
-      "Condition": {
-        "StringNotEquals": {
-          "aws:Referer": "https://${aws_cloudfront_distribution.my_distribution.domain_name}/*"
-        }
-      }
-    }
-  ]
-}
-POLICY
-}
-
-resource "aws_lambda_function" "edge_function" {
-  filename      = "myLambdaFunction.zip"
-  function_name = "my-edge-function"
-  role          = aws_iam_role.lambda_role.arn
-  handler       = "index.handler"
-  runtime       = "nodejs14.x"
-}
-
-resource "aws_iam_role" "lambda_role" {
-  name = "lambda-edge-role"
-
-  assume_role_policy = <<POLICY
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
+      "Sid": "PublicReadGetObject",
       "Effect": "Allow",
-      "Principal": {
-        "Service": "lambda.amazonaws.com"
-      },
-      "Action": "sts:AssumeRole"
+      "Principal": "*",
+      "Action": [
+        "s3:GetObject"
+      ],
+      "Resource": "arn:aws:s3:::${aws_s3_bucket.static_website_bucket.bucket}/*"
     }
   ]
 }
-POLICY
+EOF
 }
 
-resource "aws_iam_role_policy_attachment" "lambda_policy_attachment" {
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
-  role       = aws_iam_role.lambda_role.name
-}
-
-resource "aws_lambda_permission" "edge_permission" {
-  statement_id  = "AllowExecutionFromCloudFront"
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.edge_function.arn
-  principal     = "edgelambda.amazonaws.com"
-  source_arn    = aws_cloudfront_distribution.my_distribution.arn
-}
-
-resource "aws_lambda_alias" "edge_alias" {
-  name             = "edge-alias"
-  function_name    = aws_lambda_function.edge_function.function_name
-  function_version = aws_lambda_function.edge_function.version
-}
-
-resource "aws_cloudfront_distribution" "my_distribution" {
-  enabled             = true
-  is_ipv6_enabled     = true
-  comment             = "My CloudFront Distribution"
+# Configure CloudFront distribution
+resource "aws_cloudfront_distribution" "static_website_distribution" {
+  enabled         = true
+  is_ipv6_enabled = true
+  comment         = "Static website distribution"
+  price_class     = "PriceClass_100"
 
   default_cache_behavior {
     allowed_methods  = ["GET", "HEAD"]
     cached_methods   = ["GET", "HEAD"]
-    target_origin_id = aws_s3_bucket.my_bucket.id
+    target_origin_id = "S3Origin"
+
     forwarded_values {
       query_string = false
       cookies {
@@ -106,12 +62,6 @@ resource "aws_cloudfront_distribution" "my_distribution" {
     min_ttl                = 0
     default_ttl            = 3600
     max_ttl                = 86400
-
-    lambda_function_association {
-      event_type   = "viewer-request"
-      lambda_arn   = aws_lambda_alias.edge_alias.arn
-      include_body = false
-    }
   }
 
   restrictions {
@@ -124,16 +74,45 @@ resource "aws_cloudfront_distribution" "my_distribution" {
     cloudfront_default_certificate = true
   }
 
-  origin {
-    domain_name = aws_s3_bucket.my_bucket.bucket_regional_domain_name
-    origin_id   = aws_s3_bucket.my_bucket.id
+  origins {
+    domain_name = aws_s3_bucket.static_website_bucket.bucket
+    origin_id   = "S3Origin"
 
-    s3_origin_config {
-      origin_access_identity = aws_cloudfront_origin_access_identity.my_oai.cloudfront_access_identity_path
+    custom_origin_config {
+      http_port             = 80
+      https_port            = 443
+      origin_protocol_policy = "http-only"
+      origin_ssl_protocols  = ["TLSv1.2"]
     }
+  }
+
+  # Lambda function association
+  lambda_function_association {
+    event_type   = "viewer-request"
+    lambda_arn   = "arn:aws:lambda:<ap-southeast-1>:${var.AWS_ACCOUNT_ID}:function:<myFunction1>:<Versions (1)>"
+    include_body = false
+  }
+
+  tags = {
+    Name = "StaticWebsiteDistribution"
   }
 }
 
-resource "aws_cloudfront_origin_access_identity" "my_oai" {
-  comment = "My CloudFront OAI"
+# Deploy changes using CloudFront invalidation
+resource "aws_cloudfront_distribution" "static_website_distribution_invalidation" {
+  depends_on = [aws_cloudfront_distribution.static_website_distribution]
+
+  count = var.enable_cache_invalidation ? 1 : 0
+
+  # Specify the paths to invalidate
+  for_each = aws_s3_bucket_object.cache_control
+
+  distribution_id = aws_cloudfront_distribution.static_website_distribution.id
+
+  invalidation_batch {
+    caller_reference = timestamp()
+    paths            = [each.key]
+  }
 }
+
+
