@@ -39,12 +39,38 @@ resource "aws_s3_bucket_policy" "bucket_policy" {
 EOF
 }
 
-# Configure CloudFront distribution
+# Configure automated backups using S3 lifecycle policy
+resource "aws_s3_bucket_lifecycle_configuration" "lifecycle_configuration" {
+  rule {
+    id      = "BackupRule"
+    status  = "Enabled"
+
+    transition {
+      days          = 30
+      storage_class = "GLACIER"
+    }
+  }
+}
+
+# Implement cache-control headers on S3 objects
+resource "aws_s3_bucket_object" "cache_control" {
+  for_each = var.object_cache_control
+
+  bucket = aws_s3_bucket.static_website_bucket.bucket
+  key    = each.key
+
+  content_type = each.value.content_type
+
+  metadata_directive = "REPLACE"
+  cache_control     = each.value.cache_control
+}
+
+# Create CloudFront distribution
 resource "aws_cloudfront_distribution" "static_website_distribution" {
-  enabled         = true
-  is_ipv6_enabled = true
-  comment         = "Static website distribution"
-  price_class     = "PriceClass_100"
+  enabled             = true
+  is_ipv6_enabled     = true
+  comment             = "Static website distribution"
+  price_class         = "PriceClass_100"
 
   default_cache_behavior {
     allowed_methods  = ["GET", "HEAD"]
@@ -75,7 +101,7 @@ resource "aws_cloudfront_distribution" "static_website_distribution" {
   }
 
   origins {
-    domain_name = aws_s3_bucket.static_website_bucket.bucket
+    domain_name = aws_s3_bucket.static_website_bucket.website_endpoint
     origin_id   = "S3Origin"
 
     custom_origin_config {
@@ -86,23 +112,16 @@ resource "aws_cloudfront_distribution" "static_website_distribution" {
     }
   }
 
-  # Lambda function association
-  lambda_function_association {
-    event_type   = "viewer-request"
-    lambda_arn   = "arn:aws:lambda:<ap-southeast-1>:${var.AWS_ACCOUNT_ID}:function:<myFunction1>:<Versions (1)>"
-    include_body = false
-  }
-
   tags = {
     Name = "StaticWebsiteDistribution"
   }
 }
 
-# Deploy changes using CloudFront invalidation
+# Invalidate CloudFront cache after deployment
 resource "aws_cloudfront_distribution" "static_website_distribution_invalidation" {
   depends_on = [aws_cloudfront_distribution.static_website_distribution]
 
-  # Specify the paths to invalidate
+  count   = var.enable_cache_invalidation ? 1 : 0
   for_each = aws_s3_bucket_object.cache_control
 
   distribution_id = aws_cloudfront_distribution.static_website_distribution.id
@@ -112,5 +131,6 @@ resource "aws_cloudfront_distribution" "static_website_distribution_invalidation
     paths            = [each.key]
   }
 }
+
 
 
