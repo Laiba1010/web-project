@@ -102,8 +102,6 @@ resource "aws_cloudfront_distribution" "static_website_distribution" {
 resource "aws_cloudfront_distribution" "static_website_distribution_invalidation" {
   depends_on = [aws_cloudfront_distribution.static_website_distribution]
 
-  count = var.enable_cache_invalidation ? 1 : 0
-
   # Specify the paths to invalidate
   for_each = aws_s3_bucket_object.cache_control
 
