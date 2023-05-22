@@ -1,7 +1,17 @@
-
 provider "aws" {
   region = "eu-west-1"
 }
+
+# Declare the input variable
+variable "object_cache_control" {
+  description = "Cache control configuration for S3 objects"
+  type        = map(object({
+    content_type = string
+    cache_control = string
+  }))
+  default     = {}
+}
+
 # Set up the S3 bucket for static website hosting
 resource "aws_s3_bucket" "static_website_bucket" {
   bucket = "dev-laiba-wania-bucket-1"
