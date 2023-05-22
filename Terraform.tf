@@ -75,9 +75,15 @@ resource "aws_iam_role_policy_attachment" "lambda_policy_attachment" {
 resource "aws_lambda_permission" "edge_permission" {
   statement_id  = "AllowExecutionFromCloudFront"
   action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.edge_function.function_name
+  function_name = aws_lambda_function.edge_function.arn
   principal     = "edgelambda.amazonaws.com"
   source_arn    = aws_cloudfront_distribution.my_distribution.arn
+}
+
+resource "aws_lambda_alias" "edge_alias" {
+  name             = "edge-alias"
+  function_name    = aws_lambda_function.edge_function.function_name
+  function_version = aws_lambda_function.edge_function.version
 }
 
 resource "aws_cloudfront_distribution" "my_distribution" {
@@ -103,7 +109,7 @@ resource "aws_cloudfront_distribution" "my_distribution" {
 
     lambda_function_association {
       event_type   = "viewer-request"
-      lambda_arn   = aws_lambda_function.edge_function.qualified_arn
+      lambda_arn   = aws_lambda_alias.edge_alias.arn
       include_body = false
     }
   }
