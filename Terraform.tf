@@ -12,40 +12,41 @@ variable "object_cache_control" {
   default     = {}
 }
 
-# Set up the S3 bucket for static website hosting
-resource "aws_s3_bucket" "static_website_bucket" {
+resource "aws_s3_bucket" "my_bucket" {
   bucket = "dev-laiba-wania-bucket-1"
 
   website {
     index_document = "index.html"
     error_document = "404.html"
   }
-
-  versioning {
-    enabled = true
-  }
 }
 
-# Configure bucket policy to allow public access
-resource "aws_s3_bucket_policy" "bucket_policy" {
-  bucket = aws_s3_bucket.static_website_bucket.bucket
+output "s3_bucket_name" {
+  value = aws_s3_bucket.my_bucket.id
+}
 
-  policy = <<EOF
+resource "aws_s3_bucket_policy" "bucket_policy" {
+  bucket = aws_s3_bucket.my_bucket.id
+
+  policy = <<POLICY
 {
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Sid": "PublicReadGetObject",
-      "Effect": "Allow",
+      "Sid": "AllowCloudFrontAccess",
+      "Effect": "Deny",
       "Principal": "*",
-      "Action": [
-        "s3:GetObject"
-      ],
-      "Resource": "arn:aws:s3:::${aws_s3_bucket.static_website_bucket.bucket}/*"
+      "Action": "s3:GetObject",
+      "Resource": "arn:aws:s3:::dev-laiba-wania-bucket-1/*",
+      "Condition": {
+        "StringNotEquals": {
+          "aws:Referer": "https://${aws_cloudfront_distribution.my_distribution.domain_name}/*"
+        }
+      }
     }
   ]
 }
-EOF
+POLICY
 }
 
 # Configure automated backups using S3 lifecycle policy
