@@ -37,6 +37,8 @@ EOF
 
 # Configure automated backups using S3 lifecycle policy
 resource "aws_s3_bucket_lifecycle_configuration" "lifecycle_configuration" {
+  bucket = aws_s3_bucket.static_website_bucket.bucket
+
   rule {
     id      = "BackupRule"
     status  = "Enabled"
@@ -55,10 +57,11 @@ resource "aws_s3_bucket_object" "cache_control" {
   bucket = aws_s3_bucket.static_website_bucket.bucket
   key    = each.key
 
-  content_type = each.value.content_type
-
-  metadata_directive = "REPLACE"
-  cache_control     = each.value.cache_control
+  content_type   = each.value.content_type
+  cache_control  = each.value.cache_control
+  metadata       = {
+    "Cache-Control" = each.value.cache_control
+  }
 }
 
 # Create CloudFront distribution
@@ -96,8 +99,8 @@ resource "aws_cloudfront_distribution" "static_website_distribution" {
     cloudfront_default_certificate = true
   }
 
-  origins {
-    domain_name = aws_s3_bucket.static_website_bucket.website_endpoint
+  origin {
+    domain_name = aws_s3_bucket.static_website_bucket.website_domain
     origin_id   = "S3Origin"
 
     custom_origin_config {
@@ -117,6 +120,7 @@ resource "aws_cloudfront_distribution" "static_website_distribution" {
 resource "aws_cloudfront_distribution" "static_website_distribution_invalidation" {
   depends_on = [aws_cloudfront_distribution.static_website_distribution]
 
+  count   = var.enable_cache_invalidation ? 1 : 0
   for_each = aws_s3_bucket_object.cache_control
 
   distribution_id = aws_cloudfront_distribution.static_website_distribution.id
