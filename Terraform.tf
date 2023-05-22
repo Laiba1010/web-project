@@ -15,7 +15,6 @@ variable "object_cache_control" {
 # Set up the S3 bucket for static website hosting
 resource "aws_s3_bucket" "static_website_bucket" {
   bucket = "dev-laiba-wania-bucket-1"
-  acl    = "public-read"  # Allow public read access
 
   website {
     index_document = "index.html"
